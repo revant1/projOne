@@ -2,13 +2,28 @@ const  mongoose  = require('mongoose');
 const { Schema } = mongoose;
 
 const bookSchema = new Schema({
-  Id: {type:Schema.ObjectId, auto:true},
-  title:  String, 
-  author: String,
+  title:  {
+    type: String,
+    required: true
+  }, 
+  author:  {
+    type: String,
+    required: true,
+    unique: true
+  }, 
   date: { type: Date, default: Date.now },
-  pages: Number,
+  pages:  {
+    type: Number,
+    required: true
+  }, 
+  publisherName: {
+    type: String,
+    required: true
+  }, 
   publisherId:[{ type: Schema.Types.ObjectId, ref: 'Publisher' }],
-  publishDate: Date,
+  publishDate: {
+    type: Date
+  },
   available: Number,
   checkout: [ Schema.Types.Mixed ]
 });

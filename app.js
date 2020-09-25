@@ -2,10 +2,12 @@ const express = require('express');
 const morgan = require('morgan');
 const connectDB  = require('./config/db');
 const  bodyParser = require('body-parser');
-
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 const app = express();
+
+mongoose.promise = global.promise;
 
 connectDB();
 if (process.env.NODE_ENV === 'dev') {

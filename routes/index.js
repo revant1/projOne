@@ -10,23 +10,27 @@ router.use(function (req, res, next) {
   });
 
 
-router.get('/allBooks',(req,res) => {
-    const getBooks = Book.find();
-    console.log(getBooks, 'BOOKS'); 
-});
+// router.get('/allBooks',(req,res) => {
+//     const getBooks = Book.find();
+//     console.log(getBooks, 'BOOKS'); 
+// });
 
-router.post('/createBook',(req,res) => {
-    // console.log((req.body), 'req');
-    
+
+
+router.post('/addBook', async (req,res) => {
+    console.log((req.body), 'req');
+    const doc = await  Publisher.findOne({"title": req.body.publisherName }).exec();
+
+    console.log(doc._id)
     // get a publisher 
-    const publisherTitle = "Test Publisher2";
-    const docs = Publisher.findOne({"title": publisherTitle},function (err, docs) { 
-    if (err){ 
-        return err;
-    } 
-    else{ y
-        return docs;
-    }});
+    // const publisherTitle = "Test Publisher2";
+    // const docs = Publisher.findOne({"title": publisherTitle},function (err, docs) { 
+    // if (err){ 
+    //     return err;
+    // } 
+    // else{ 
+    //     return docs;
+    // }});
 
    /*
    Books: [],
@@ -35,26 +39,28 @@ router.post('/createBook',(req,res) => {
   startedOn: 2020-09-20T00:00:00.000Z,
   __v: 0*/
 
-  console.log(docs,'FFF');
+//   console.log(docs,'FFF');
 
     const newBook = new Book({
     title :req.body.title,
     author :req.body.author,
     pages :req.body.pages,
     available :req.body.available,
-    publishDate:req.body.publishDate,
+    publisherName:req.body.publisherName,
+    publisherId: doc._id,
+
+    // publishDate:req.body.publishDate,
     // publisherId:req.body.
     });
 
     newBook.save().then(book => res.json(book)).catch( (err) => {
-        res.statusCode(401);
-        res.statusMessage({"error":err});
+      res.json({"errrrr": err})
     });
 });
 
 
 router.post('/addPublisher',(req,res) => {
-    console.log((req.body), 'req');
+    console.log((req.body.startedOn), 'req');
 
     const newPublisher = new Publisher({
         title:  req.body.title, 
@@ -62,27 +68,59 @@ router.post('/addPublisher',(req,res) => {
     });
 
     newPublisher.save().then(pub => res.json(pub)).catch( (err) => {
-        res.statusCode(401);
-        res.statusMessage({"error":err});
+        console.log(err);
     }
     );
 
 });
 
-// router.post('/map',(req,res) => {
-//     console.log((req.body), 'req');
+router.get('/getAllPublishers', async (req,res) => {
+    console.log((req.body), 'req');
+const publisherDocs = await Publisher.find({}).exec();
+ if (publisherDocs){
+     return res.json(publisherDocs)
+ }else {
+     return res.json({})
+ }})
 
-//     const newPublisher = new Publisher({
-//         title:  req.body.title, 
-//         startedOn:req.body.startedOn
-//     });
+ router.get('/getAllBooks', async (req,res) => {
+    const bookDocs = await Book.find({}).exec();
+    console.log(bookDocs , "BOOKS")
+ if (bookDocs){
+     return res.json(bookDocs)
+ }else {
+     return res.json({})
+ }})
 
-//     newPublisher.save().then(pub => res.json(pub)).catch( (err) => {
-//         res.statusCode(401);
-//         res.statusMessage({"error":err});
-//     }
-//     );
 
-// });
+
+
+ router.post('/updateBooks', async (req,res) => {
+    /*
+    req.body.BookTitle
+    req.body.BookPublisher
+    */
+ // get the doc for book title 
+
+ const bookDoc = await Book.findOne({"title": req.body.bookTitle });
+ const publisherDoc = await Publisher.findOne({"title": req.body.publisherName});
+    console.log(publisherDoc, 'pubs')
+
+    const isDone = await Publisher.findByIdAndUpdate(
+        {_id : publisherDoc._id},
+        {"$addToSet": { "Books": bookDoc._id }},
+        function (err, raw) {
+            if (err) return err ;
+            console.log('The raw response from Mongo was ', raw);
+        });
+    console.log(isDone , 'DONE');
+
+    if (isDone) {
+            return res.json(isDone);
+    }
+        return res.json({"error": "error....."})
+    
+    
+});
 
 module.exports = router
